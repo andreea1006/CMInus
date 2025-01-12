@@ -22,6 +22,27 @@ parser code {:
   	{
 		return syntaxTree;
   	}
+
+	protected TreeNode createTypeSpecifier(String typeName) { throw new UnsupportedOperationException(); }
+	protected TreeNode createFunctionDeclarationNode(TreeNode ts, String i, TreeNode ps, TreeNode cs) { throw new UnsupportedOperationException(); }
+ 	protected TreeNode createVarDeclaration(TreeNode ts, String i, Integer n) { throw new UnsupportedOperationException(); }
+ 	protected TreeNode createDeclList(TreeNode dl, TreeNode d) { throw new UnsupportedOperationException(); }
+	protected TreeNode createParamList(TreeNode pl, TreeNode p) { throw new UnsupportedOperationException(); }
+	protected TreeNode createParam(TreeNode ts, String i, Integer array) { throw new UnsupportedOperationException(); }
+	protected TreeNode createStatementList(TreeNode sl, TreeNode s) { throw new UnsupportedOperationException(); }
+	protected TreeNode createLocalDecl(TreeNode ld, TreeNode vd) { throw new UnsupportedOperationException(); }
+	protected TreeNode selectionStmt(TreeNode exp, TreeNode stmt, TreeNode else_stmt) { throw new UnsupportedOperationException(); }
+	protected TreeNode iterationStmt(TreeNode exp, TreeNode stmt) { throw new UnsupportedOperationException(); }
+	protected TreeNode compoundStmt(TreeNode ld, TreeNode sl) { throw new UnsupportedOperationException(); }
+	protected TreeNode expressionStmt(TreeNode exp) { throw new UnsupportedOperationException(); }
+	protected TreeNode returnStatement(TreeNode exp) { throw new UnsupportedOperationException(); }
+	protected TreeNode addExpression(TreeNode exp, TreeNode v) { throw new UnsupportedOperationException(); }
+	protected TreeNode addVar(String i, TreeNode exp) { throw new UnsupportedOperationException(); }
+	protected TreeNode simpleExpression(TreeNode ae, TreeNode rel, TreeNode exp) { throw new UnsupportedOperationException(); }
+	protected TreeNode additiveExpression(TreeNode ae, TreeNode op, TreeNode t) { throw new UnsupportedOperationException(); }
+	protected TreeNode addTerm(TreeNode tm, TreeNode op, TreeNode f) { throw new UnsupportedOperationException(); }
+	protected TreeNode argList(TreeNode al, TreeNode exp) { throw new UnsupportedOperationException(); }
+
 :}
 
 /* define how to connect to the scanner! */
@@ -57,6 +78,7 @@ non terminal   TreeNode	 additive_expression, addop, term, mulop;
 non terminal   TreeNode	 factor, call, args, arg_list;
 
 /* Precedences */
+precedence nonassoc ELSE;	// Inserted by Eclipse plugin
 precedence left PLUS, MINUS;
 precedence left TIMES, DIVIDE;
 precedence left LT, LE, GT, GE;
@@ -64,111 +86,77 @@ precedence left EQ, NEQ;
 precedence left ASSIGN;
 
 program ::= declaration_list:dl													{: 
-																				   RESULT = syntaxTree.create("Program", dl);
+																				   	RESULT = syntaxTree.create("Program", dl);
 																				:};
 
 declaration_list ::= declaration_list:dl declaration:d 							{: 
-																				   TreeNode node = dl;
-       																			   node.addChild(d);        																			    
-       																			   RESULT = node; 
-																				:}
+																				   	RESULT = createDeclList(dl, d);
+ 																				:}
                    | declaration:d 												{: 
-      																			   TreeNode node = new TreeNode("declaration_list");
-       																			   node.addChild(d);
-       																			   RESULT = node;
+																					RESULT = createDeclList(null, d);
  																				:};
 
 declaration ::= var_declaration:vd 												{:  
-																				   RESULT = vd;
+																				   	RESULT = vd;
 																				:}
               | fun_declaration:fd 												{: 
-																				   RESULT = fd;
+																				   	RESULT = fd;
     																			:};
 
 var_declaration ::= type_specifier:ts ID:i SEMI 								{: 
-																				   TreeNode node = new TreeNode("var_declaration");
-       																			   node.addChild(ts); 
-																				   node.addChild(new TreeNode(i.toString())); 
-       																			   RESULT = node;
+																					RESULT = createVarDeclaration(ts, i, 0);
 																				:}
                   | type_specifier:ts ID:i LBRACK NUM:n RBRACK SEMI 			{: 
- 																				   TreeNode node = new TreeNode("var_declaration_array");
-        																		   node.addChild(ts);
-       																			   node.addChild(new TreeNode(i.toString()));
-        																		   node.addChild(new TreeNode(n.toString())); 
-        																		   RESULT = node;
-   																				 :};
+																					RESULT = createVarDeclaration(ts, i, n);
+   																				:};
 
 type_specifier ::= INT 															{: 
-																				   RESULT = new TreeNode("INT"); 
+																				   	RESULT = createTypeSpecifier("INT");
 																				:}
                  | VOID 														{:  
-																				   RESULT = new TreeNode("VOID");
+																					RESULT = createTypeSpecifier("VOID");
 																				:};
-fun_declaration ::= type_specifier:ts ID:i LPAREN params:ps RPAREN compound_stmt:cs 		{: 
-        																		   TreeNode node = new TreeNode("fun_declaration");
-        																		   node.addChild(ts);
-        																		   node.addChild(new TreeNode(i.toString()));
-        																		   node.addChild(ps);
-        																		   node.addChild(cs);
-        																		   RESULT = node;
+fun_declaration ::= type_specifier:ts ID:i LPAREN params:ps RPAREN compound_stmt:cs {: 
+																					RESULT = createFunctionDeclarationNode(ts, i, ps, cs);
     																			 :};
 
 params ::= param_list:pl														{: 
-																				   RESULT = pl;
+																				   	RESULT = pl;
     																			:}
          | VOID 																{: 
-																				   RESULT = new TreeNode("params - VOID");
+																				   	RESULT = new TreeNode("params - VOID");
     																			:};
 
 param_list ::= param_list:pl COMMA param:p 										{: 
-																				   TreeNode node = pl;
-        																		   node.addChild(p);
-       																			   RESULT = node;
+																					RESULT = createParamList(pl, p);
     																			:}
              | param:p 															{: 
- 																				   TreeNode node = new TreeNode("param_list");
-        																		   node.addChild(p);
-        																		   RESULT = node;
+																					RESULT = createParamList(null, p);
     																			:};
 
 param ::= type_specifier:ts ID:i 												{: 
- 																				   TreeNode node = new TreeNode("param");
-        																		   node.addChild(ts);
-        																		   node.addChild(new TreeNode(i.toString()));
-       																			   RESULT = node;
+																					RESULT = createParam(ts, i, 0);
     																			:}
         | type_specifier:ts ID:i LBRACK RBRACK 									{: 
-																				   TreeNode node = new TreeNode("param_array");
-        																		   node.addChild(ts);
-        																		   node.addChild(new TreeNode(i.toString()));
-        																		   node.addChild(new TreeNode("Array"));
-        																		   RESULT = node;
+																					RESULT = createParam(ts, i, 1);
     																		    :};
 
 compound_stmt ::= LBRACE local_declarations:ld statement_list:sl RBRACE 		{: 
-																				   TreeNode node = new TreeNode("compound_stmt");
-        																		   node.addChild(ld);
-        																		   node.addChild(sl);
-        																		   RESULT = node;
+        																		   	RESULT = compoundStmt(ld, sl);
     																			:};
 
 local_declarations ::= local_declarations:ld var_declaration:vd 				{: 
-																				   TreeNode node = ld;
-        																		   node.addChild(vd);
-        																		   RESULT = node;
+																					RESULT = createLocalDecl(ld, vd);
     																			:}
                      | /* ε */ 													{: 
-																				   RESULT = new TreeNode("local_declarations");
+																					RESULT = createLocalDecl(null, null); //new TreeNode("local_declarations");
     																			:};
 
 statement_list ::= statement_list:sl statement:s								{: 
- 																				   TreeNode node = sl;
-        																		   node.addChild(s);;
-       																			   RESULT = node;
+																					RESULT = createStatementList(sl, s);
     																			:}
                  | /* ε */ 														{:
-																				   RESULT = new TreeNode("statement_list");
+																				   	RESULT = createStatementList(null, null); //new TreeNode("statement_list");
     																			:};
 
 statement ::= expression_stmt:es 												{: 
@@ -188,84 +176,50 @@ statement ::= expression_stmt:es 												{:
 																				:};
 
 expression_stmt ::= expression:exp SEMI 										{: 
- 																				   TreeNode node = new TreeNode("expression_stmt");
-    																			   node.addChild((TreeNode) exp); 
-    																			   RESULT = node;
+    																			   RESULT = expressionStmt(exp);
 																				:}
                   | SEMI 														{: 
-																				   RESULT = new TreeNode("empty_expression_stmt");
+    																			   RESULT = expressionStmt(null);
 																				:};
 
 selection_stmt ::= IF LPAREN expression:exp RPAREN statement:stmt 				{: 
-																				   TreeNode node = new TreeNode("selection_stmt");
-    																			   node.addChild(new TreeNode("IF"));
-    																			   node.addChild(exp); 
-   																				   node.addChild(stmt); 
-    																			   RESULT = node;
+    																			   RESULT = selectionStmt(exp, stmt, null);
 																				:}
                  | IF LPAREN expression:exp RPAREN statement:stmt ELSE statement:else_stmt 		{: 
-																				   TreeNode node = new TreeNode("selection_stmt");
-    																			   node.addChild(new TreeNode("IF"));
-    																			   node.addChild(exp); 
-    																			   node.addChild(stmt); 
-   																				   node.addChild(new TreeNode("ELSE"));
-    																			   node.addChild(else_stmt); 
-    																			   RESULT = node;
+    																			   RESULT = selectionStmt(exp, stmt, else_stmt);
 																				:};
 
 iteration_stmt ::= WHILE LPAREN expression:exp RPAREN statement:stmt 			{: 
- 																				   TreeNode node = new TreeNode("iteration_stmt");
-   																				   node.addChild(new TreeNode("WHILE"));
-    																			   node.addChild(exp); 
-    																			   node.addChild(stmt); 
-   																				   RESULT = node;
+   																				   RESULT = iterationStmt(exp, stmt);
 																			    :};
 
 return_stmt ::= RETURN SEMI 													{: 
-																				   TreeNode node = new TreeNode("return_stmt");
-    																			   node.addChild(new TreeNode("RETURN"));
-    																			   RESULT = node;
+																					RESULT = returnStatement(null);
 																				:}
               | RETURN expression:exp SEMI 										{: 
- 																				   TreeNode node = new TreeNode("return_stmt");
-    																			   node.addChild(new TreeNode("RETURN"));
-    																			   node.addChild(exp); 
-   																				   RESULT = node;
+																					RESULT = returnStatement(exp);
 																				:};
 
 expression ::= var:v ASSIGN expression:exp 										{: 
-																				   TreeNode node = new TreeNode("expression");
-    																			   node.addChild(v);
-    																			   node.addChild(new TreeNode("ASSIGN"));
-    																			   node.addChild(exp); 
-    																			   RESULT = node;
+																				   RESULT = addExpression(exp, v);
 																				:}
-             | simple_expression:se 											{: 
-																				   RESULT = se;
+             | simple_expression:exp 											{: 
+																				   RESULT = addExpression(exp, null);
 																				:};
 
 
 var ::= ID:i 																	{: 
-																				   TreeNode node = new TreeNode("var");
-    																			   node.addChild(new TreeNode(i.toString()));
-    																			   RESULT = node;
+    																			   RESULT = addVar(i, null);
 																				:}
       | ID:i LBRACK expression:exp RBRACK 										{: 
-																				   TreeNode node = new TreeNode("var_array");
-    																			   node.addChild(new TreeNode(i.toString()));
-    																			   node.addChild(exp); 
-    																			   RESULT = node;
+    																			   RESULT = addVar(i, exp);
 																				:};
 
-simple_expression ::= additive_expression:ae relop:rel additive_expression:exp			{: 
-																				   TreeNode node = new TreeNode("simple_expression");
-   																				   node.addChild(ae); 
-    																			   node.addChild(rel); 
-    																			   node.addChild(exp); 
-    																			   RESULT = node;
+simple_expression ::= additive_expression:ae relop:rel additive_expression:exp	{: 
+    																			   RESULT = simpleExpression(ae, rel, exp);
 																				:}
-                    | additive_expression:ae 										{: 
-																				   RESULT = ae;
+                    | additive_expression:ae 									{: 
+    																			   RESULT = simpleExpression(ae, null, null);
 																				:};
 
 relop ::= LE 																	{: 
@@ -287,15 +241,11 @@ relop ::= LE 																	{:
 																				   RESULT = new TreeNode("NEQ");
 																				:};
 
-additive_expression ::= additive_expression:ae addop:op term:t 							{: 
-																				   TreeNode node = new TreeNode("additive_expression");
-    																			   node.addChild(ae); 
-    																			   node.addChild(op); 
-    																			   node.addChild(t); 
-    																			   RESULT = node;
+additive_expression ::= additive_expression:ae addop:op term:t 					{: 
+    																			   RESULT = additiveExpression(ae, op, t);
 																				:}
                       | term:t 													{: 
-																				   RESULT = t;
+    																			   RESULT = additiveExpression(null, null, t);
 																				:};
 
 addop ::= PLUS 																	{: 
@@ -305,15 +255,11 @@ addop ::= PLUS 																	{:
 																				   RESULT = new TreeNode("MINUS");
 																				:};
 
-term ::= term:tm  mulop:op factor:f 														{: 
-																				   TreeNode node = new TreeNode("term");
-    																			   node.addChild(tm); 
-    																			   node.addChild(op); 
-    																			   node.addChild(f); 
-    																			   RESULT = node;
+term ::= term:tm mulop:op factor:f 												{: 
+    																			   RESULT = additiveExpression(tm, op, f);
 																				:}
        | factor:f 																{: 
-																				   RESULT = f;
+    																			   RESULT = additiveExpression(null, null, f);
 																				:};
 
 mulop ::= TIMES 																{: 
@@ -323,14 +269,14 @@ mulop ::= TIMES 																{:
   																				   RESULT = new TreeNode("DIVIDE");
 																				:};
 
-factor ::= LPAREN expression:exp RPAREN 											{: 
+factor ::= LPAREN expression:exp RPAREN 										{: 
 																   				   TreeNode node = new TreeNode("factor");
     																			   node.addChild(new TreeNode("LPAREN"));
     																			   node.addChild(exp); 
    																				   node.addChild(new TreeNode("RPAREN"));
     																			   RESULT = node;
 																				:}
-         | var:v 																	{: 
+         | var:v 																{: 
 																				   RESULT = v;
 																				:}
          | call:c 																{: 
@@ -342,14 +288,14 @@ factor ::= LPAREN expression:exp RPAREN 											{:
     																			   RESULT = node;
 																				:};
 
-call ::= ID:i LPAREN args:arg RPAREN 													{: 
+call ::= ID:i LPAREN args:arg RPAREN 											{: 
 																				   TreeNode node = new TreeNode("call");
     																			   node.addChild(new TreeNode(i.toString()));
     																			   node.addChild(arg); 
     																			   RESULT = node;
 																				:};
 
-args ::= arg_list:al 																{: 
+args ::= arg_list:al 															{: 
 																				   RESULT = al; 
 																				:}
        | /* ε */ 																{:
@@ -357,17 +303,11 @@ args ::= arg_list:al 																{:
 																				:};
 
 
-arg_list ::= arg_list:al COMMA expression:exp 											{: 
-																				   TreeNode node = new TreeNode("arg_list");
-    																			   node.addChild(al); 
-    																			   node.addChild(new TreeNode("COMMA"));
-    																			   node.addChild(exp); 
-    																			   RESULT = node;
+arg_list ::= arg_list:al COMMA expression:exp 									{: 
+    																			   RESULT = argList(al, exp);
 																				:}
-           | expression:exp 														{: 
-            																	   TreeNode node = new TreeNode("arg_list");
-    																			   node.addChild(exp); 
-    																			   RESULT = node;
+           | expression:exp 													{: 
+    																			   RESULT = argList(null, exp);
 																				:};
 
        

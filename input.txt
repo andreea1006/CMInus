@@ -1,18 +1,23 @@
 /* A C- program to compute gcd using Euclid's Algorithm. */
-int gcd(int u, int v )
+int v;
+
+int gcd(int u, int v, int a[])
 {
- if ( v == 0 )
- return u ;
- else
- return gcd (v, u-u/v*v) ;
- /* u-u/v*v == u mod v */
+	if ( v == 0 )
+		return u;
+	else
+		return gcd(v, u-u/v*v);
+	/* u-u/v*v == u mod v */
 }
 
 void main(void)
 {
- int x;
- int y;
- x = 15;
- y = 20;
- output(gcd(x, y));
- }
+	int x;
+	int y;
+	int a[10];
+	
+	x = 15;
+	y = 20;
+	
+	output(gcd(x, y));
+}
